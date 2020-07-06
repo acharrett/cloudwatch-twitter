@@ -1,0 +1,33 @@
+service: cloudwatchtwitter
+
+custom:
+ SnsTopicName: TwitterNotify
+ SsmParamName: twitter
+
+provider:
+ name: aws
+ runtime: python3.8
+ region: eu-west-1
+ stage: event
+ memorySize: 128
+ timeout: 15
+ iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - ssm:GetParameter
+      Resource:
+        - arn:aws:ssm:${self:provider.region}:*:parameter/${self:custom.SsmParamName}
+
+package:
+ exclude:
+  - twitter.json
+  - setup.sh
+
+functions:
+ cloudwatchtwitter:
+  handler: main.handler
+  events:
+   - sns: ${self:custom.SnsTopicName}
+  environment:
+   TWITTER_USERS: twitter_username_1,twitter_username_2
+
